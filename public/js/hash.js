@@ -4,6 +4,18 @@ document.querySelectorAll('.game-button').forEach(button => {
     });
 });
 
+const defaultSwalConfig = {
+    confirmButtonColor: '#f53636',
+    cancelButtonText: 'Exit',
+    cancelButtonColor: '#000000',
+    background: 'black',
+    customClass: {
+        title: 'custom-title-color',
+        content: 'custom-text-color',
+    }
+};
+
+
 function formatDate(dateString) {
     const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -15,13 +27,21 @@ function tryHash() {
         if (response.data.blockHash && response.data.etherscanLink) {
             const winningResult = response.data.blockHash.slice(-1); // Get the last character
 
-            // Update the HTML elements with the fetched data
-            //document.getElementById('winningResult').textContent = winningResult;
-            //document.getElementById('fullHash').textContent = response.data.blockHash;
-            //document.getElementById('etherscanLink').href = response.data.etherscanLink;
-
-            // Show the result div
-            //document.getElementById('hashResult').style.display = 'block';
+            // Display the result using SweetAlert2
+            Swal.fire({
+                title: 'Hash Result',
+                html: `
+                    <div>
+                        <p><strong>Winning Result:</strong> ${winningResult}</p>
+                        <p><strong>Full Hash:</strong> ${response.data.blockHash}</p>
+                        <p><a href="${response.data.etherscanLink}" target="_blank">View on Etherscan</a></p>
+                    </div>
+                `,
+                width: '60%',
+                customClass: {
+                    content: 'hash-result-popup-content'
+                }
+            });
         } else {
             console.error('Failed to retrieve the block hash.');
         }
@@ -30,6 +50,7 @@ function tryHash() {
         console.error('An error occurred while fetching the block hash:', error);
     });
 }
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -128,7 +149,7 @@ function firstMessage() {
             mainContainer.style.opacity = '1';
             mainContainer.style.pointerEvents = 'auto';
             const music = document.getElementById('backgroundMusic');
-            music.play();
+            //music.play();
             playMusicButton.style.display = 'none'; // Hide the play button after clicking
             muteButton.style.display = 'block';
         }
@@ -411,6 +432,7 @@ function checkUserForPopout() {
 document.querySelector('.clickable-object').addEventListener('click', function() {
     updateEntries(function(entries) {
         Swal.fire({
+            ...defaultSwalConfig,
             title: 'Choose Number',
             html: `
                 <div class="game-buttons-container">
@@ -444,15 +466,12 @@ document.querySelector('.clickable-object').addEventListener('click', function()
                 </div>
             `,
             width: '60%',
-            customClass: {
-                content: 'game-popup-content'
-            },
-            showCloseButton: true, // Display a close button on the modal
-            allowOutsideClick: false, // Prevent closing the modal when clicking outside
-            allowEscapeKey: false, // Prevent closing the modal with the escape key
-            showConfirmButton: false, // Hide the default confirmation button
-            focusConfirm: false, // Prevent focusing on the confirm button
-            didOpen: () => { // This function is executed after the Swal modal is opened
+            showCloseButton: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            focusConfirm: false,
+            didOpen: () => { 
                 document.querySelectorAll('.game-button').forEach(button => {
                     button.addEventListener('click', function() {
                         handleGameButtonClick(this.innerText);
@@ -515,6 +534,7 @@ function handleGameButtonClick(buttonValue) {
     .then(data => {
         // Display the message using SweetAlert2 in toast mode
         Swal.fire({
+            ...defaultSwalConfig,
             title: data.message,
             icon: data.status, // 'success' or 'error'
             toast: true,
@@ -539,37 +559,158 @@ function handleGameButtonClick(buttonValue) {
         console.error('Error:', error);
     });
 }
+let currentPage = 1;
 
 document.querySelector('#previousResultsButton').addEventListener('click', function() {
-    var pastHashesHtml = pastHashes.map(function(hash) {
-        return `
-            <tr>
-                <td>${hash.hash.slice(-1)}</td>
-                <td><a href="${hash.link}" target="_blank">${hash.hash}</a></td>
-                <td>${hash.retrieved_at}</td>
-            </tr>
-        `;
-    }).join('');
+    fetchPastHashes(currentPage);
+});
 
-    Swal.fire({
-        title: 'Previous Results',
-        html: `
-            <table>
+function fetchPastHashes(page) {
+    axios.get('/past-hashes?page=' + page)
+    .then(response => {
+        const data = response.data;
+        const pastHashes = data.data; // The actual data is inside the 'data' property
+
+        var pastHashesHtml = pastHashes.map(function(hash) {
+            return `
+                <tr>
+                    <td>${hash.hash.slice(-1)}</td>
+                    <td><a href="${hash.link}" target="_blank">${hash.hash}</a></td>
+                    <td>${hash.retrieved_at}</td>
+                </tr>
+            `;
+        }).join('');
+
+        Swal.fire({
+            ...defaultSwalConfig,
+            title: 'Previous Results',
+            html: `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Result</th>
+                            <th>Full Hash</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pastHashesHtml}
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <button ${data.prev_page_url ? '' : 'disabled'} onclick="fetchPastHashes(${data.current_page - 1})">Previous</button>
+                    <button ${data.next_page_url ? '' : 'disabled'} onclick="fetchPastHashes(${data.current_page + 1})">Next</button>
+                </div>
+            `,
+            width: '60%',
+        });
+    });
+}
+
+/*function getTimeRemaining() {
+    const now = new Date();
+    const nextMinute = new Date(now);
+    nextMinute.setMinutes(now.getMinutes() + 1);
+    nextMinute.setSeconds(0);
+    return nextMinute - now;
+}*/
+
+function getTimeRemaining() {
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1);
+    nextHour.setMinutes(0);
+    nextHour.setSeconds(0);
+    return nextHour - now;
+}
+
+
+// Update the countdown display
+function updateCountdownDisplay(duration) {
+    const hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+    document.getElementById('countdown').textContent = `Next Result: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Start the countdown
+function startCountdown() {
+    let duration = getTimeRemaining();
+    updateCountdownDisplay(duration);
+    const interval = setInterval(() => {
+        duration -= 1000;
+        updateCountdownDisplay(duration);
+        if (duration <= 0) {
+            clearInterval(interval);
+            tryHash();
+            setTimeout(startCountdown, 1000); // Restart the countdown after a second
+        }
+    }, 1000);
+}
+
+startCountdown();
+
+document.getElementById('shopButton').addEventListener('click', function() {
+    axios.get('/shop-items')
+    .then(response => {
+        const items = response.data;
+
+        let itemsHtml = `
+            <table class="shop-table">
                 <thead>
                     <tr>
-                        <th>Winning Result</th>
-                        <th>Full Hash</th>
-                        <th>Date</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Cost</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${pastHashesHtml}
+                    ${items.map(item => `
+                        <tr>
+                            <td><img src="${item.image}" alt="${item.name}" width="50"></td>
+                            <td>${item.name}</td>
+                            <td>${item.description}</td>
+                            <td>${item.cost} points</td>
+                            <td><button onclick="purchaseItem(${item.id})">Purchase</button></td>
+                        </tr>
+                    `).join('')}
                 </tbody>
             </table>
-        `,
-        width: '60%',
-        customClass: {
-            content: 'previous-results-popup-content'
-        }
+        `;
+
+        Swal.fire({
+            ...defaultSwalConfig,
+            title: 'Shop Items',
+            html: itemsHtml,
+            width: '80%',
+        });
     });
 });
+
+
+
+function purchaseItem(itemId) {
+    axios.post('/purchase-item', { item_id: itemId })
+    .then(response => {
+        if (response.data.status === 'success') {
+            Swal.fire({
+                ...defaultSwalConfig,
+                title: 'Success',
+                text: response.data.message,
+                icon: 'success'
+            });
+            // Update the user's points on the frontend, if needed
+        } else {
+            Swal.fire({
+                ...defaultSwalConfig,
+                title: 'Error',
+                text: response.data.message,
+                icon: 'error'
+            });
+        }
+    });
+}
+
+

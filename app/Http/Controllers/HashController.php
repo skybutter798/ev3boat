@@ -8,6 +8,7 @@ use App\Models\Grid;
 use App\Models\BlockHash;
 use App\Models\Entry;
 use App\Models\Reward;
+use App\Models\ShopItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Abraham\TwitterOAuth\TwitterOAuth;
@@ -67,7 +68,7 @@ class HashController extends Controller
 
         }
     
-        $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->get();
+        $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->paginate(10);
     
         return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash'));
     }
@@ -110,6 +111,8 @@ class HashController extends Controller
     
     public function getLatestBlockHash()
     {
+        Log::channel('hash_info')->info('Called getLatestBlockHash function'); // Log that the function has been called
+    
         $apiKey = '3BAH17RC7NK7SRBR8KE41TUNWBIVNYK4DE'; // Replace with your Etherscan API key
         $url = "https://api.etherscan.io/api?module=proxy&action=eth_getBlockByNumber&tag=latest&boolean=true&apikey=$apiKey";
     
@@ -118,8 +121,11 @@ class HashController extends Controller
         $data = json_decode($response->getBody(), true);
     
         if (isset($data['result']) && isset($data['result']['hash'])) {
-            $blockHash = $data['result']['hash'];
+            //$blockHash = $data['result']['hash'];
+            $blockHash = "abc01";
             $etherscanLink = "https://etherscan.io/block/$blockHash"; // Construct the Etherscan link
+    
+            Log::channel('hash_info')->info('Successfully retrieved block hash', ['blockHash' => $blockHash, 'etherscanLink' => $etherscanLink]); // Log the block hash and the Etherscan link
     
             // Store the block hash in the database
             $blockHashModel = new BlockHash;
@@ -127,7 +133,7 @@ class HashController extends Controller
             $blockHashModel->link = $etherscanLink;
             $blockHashModel->retrieved_at = now(); // Current timestamp
             $blockHashModel->save();
-            
+    
             // Check the winning entries after saving the block hash
             $this->checkWinningEntries($blockHash);
     
@@ -136,39 +142,37 @@ class HashController extends Controller
                 'etherscanLink' => $etherscanLink
             ];
         }
+        Log::error('Failed to retrieve block hash from Etherscan'); // Log an error message if the block hash is not found in the response
     
         return null;
     }
 
 
+
     public function checkWinningEntries($latestBlockHash)
     {
-        // Extract the last character of the block hash
         $lastChar = substr($latestBlockHash, -1);
-    
-        // Fetch the block hash record from the database
         $blockHashRecord = \App\Models\BlockHash::where('hash', $latestBlockHash)->first();
     
         if (!$blockHashRecord) {
-            // Handle the case where the block hash record is not found
-            // You can either return an error or log it
             return;
         }
     
-        // Fetch all entries with a status of 'pending'
         $pendingEntries = \App\Models\Entry::where('result', 'pending')->get();
     
         foreach ($pendingEntries as $entry) {
             if ($entry->entry_value == $lastChar) {
-                $entry->result = 'win'; // Update status to 'win' if it matches the block hash
+                $entry->result = 'win';
+                $user = $entry->user; // This uses the relationship you set up
+                $user->points += 10;
+                $user->save();
+               Log::channel('hash_info')->info("User {$user->name} won 10, total point : {$user->points}");
             } else {
-                $entry->result = 'lose'; // Update status to 'lose' if it doesn't match
+                $entry->result = 'lose';
             }
     
-            // Link the entry to the block hash record
             $entry->blockhash_id = $blockHashRecord->id;
-    
-            $entry->save(); // Save the updated status and blockhash_id
+            $entry->save();
         }
     }
     
@@ -185,10 +189,39 @@ class HashController extends Controller
         }
         return response()->json([]);
     }
-
-
-
-
+    
+    public function getShopItems()
+    {
+        $items = ShopItem::all();
+        return response()->json($items);
+    }
 
     
+    public function purchaseItem(Request $request)
+    {
+        $itemId = $request->input('item_id');
+        $user = Auth::user();
+    
+        $item = \App\Models\ShopItem::find($itemId);
+    
+        if ($user->points >= $item->cost) {
+            $user->points -= $item->cost;
+            $user->save();
+    
+            // Optionally, you can save a record of the purchase in another table
+    
+            return response()->json(['status' => 'success', 'message' => 'Purchase successful!']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Not enough points.']);
+        }
+    }
+    
+    public function getPastHashes()
+    {
+        $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->paginate(10);
+        return response()->json($pastHashes);
+    }
+
+
+
 }

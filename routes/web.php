@@ -28,3 +28,6 @@ Route::get('/', [HashController::class, 'index']);
 Route::post('/hit', [HashController::class, 'handleButtonClick']);
 Route::get('/hash', [HashController::class, 'getLatestBlockHash']);
 Route::get('/get-user-entries', [HashController::class, 'getUserEntries']);
+Route::get('/shop-items', [HashController::class, 'getShopItems']);
+Route::post('/purchase-item', [HashController::class, 'purchaseItem']);
+Route::get('/past-hashes', [HashController::class, 'getPastHashes']);

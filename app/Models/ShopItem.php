@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Entry extends Model
+class ShopItem extends Model
 {
     use HasFactory;
-    public function user()
+    public function getImagePathAttribute()
     {
-        return $this->belongsTo(User::class);
+        return '/img/boat/' . $this->image;
     }
 }

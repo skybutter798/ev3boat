@@ -138,6 +138,12 @@ return [
             'path' => storage_path('logs/user_info.log'),
             'level' => 'info',
         ],
+        
+        'hash_info' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/hash_info.log'),
+            'level' => 'info',
+        ],
     ],
 
 ];

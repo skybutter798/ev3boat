@@ -50,7 +50,7 @@
         @else
             <a href="{{ route('login.twitter') }}" class="twitter-login">Twitter Login</a>
         @endif
-        
+        <div id="countdown" style="color:white; margin-left: 20px;">Time left: 00:00:00</div>
         <div style="display: flex; align-items: center;">
             <button id="bubble" onclick="bubbleClicked()" class="play-sound" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Info</button>
             <button id="playMusicButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Music</button>
@@ -69,6 +69,8 @@
             <div class="content-row">
                 <a href="#" class="clickable-object"></a>
                 <a href="#" class="previous-hash-results" id="previousResultsButton"></a>
+                <button id="shopButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Shop</button>
+                
             </div>
         </div>
     </div>

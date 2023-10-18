@@ -21,6 +21,7 @@ table {
 
 table, th, td {
     border: 1px solid white;
+    color:white;
 }
 
 th, td {
@@ -149,4 +150,13 @@ th, td {
 
 .hash-results {
     width:20%;
+}
+
+a {
+    text-decoration: none;  /* Removes the underline */
+    color: white;           /* Ensures the text color remains white */
+}
+
+a:hover {
+    text-decoration: underline; /* Optional: Adds underline on hover for better UX */
 }

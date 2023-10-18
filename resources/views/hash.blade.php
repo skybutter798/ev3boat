@@ -5,7 +5,7 @@
     
 @section('content')
 <div id="npcContainer" style="position: absolute; left: 10%; bottom: 0; z-index: 100;">
-    <img src="/img/oldman_standv3.png" id="npc" style="height:500px;" onclick="">
+    <img src="/img/boat/Quest_oldman_2.png?v1" id="npc" style="height:500px; position: fixed; bottom: 0; right: 0;" onclick="">
     <button id="closeNpc" style="
     position: absolute; 
     top: 10px; 
@@ -25,6 +25,9 @@
     <audio id="backgroundMusic" loop>
         <source src="/img/{{ config('assets.audio.file') }}" type="{{ config('assets.audio.type') }}">
         Your browser does not support the audio element.
+    </audio>
+    <audio id="clickMusic">
+        <source src="/img/boat/allmypeople.mp3" type="audio/mpeg">
     </audio>
 
     <div class="title-container">
@@ -60,7 +63,7 @@
             @if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Whitelist available : {{ count($remain) }}</button>
             <button id="previousResultsButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">History</button>
-            <button onclick="tryHash()" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Try Hash</button>
+            {{--<button onclick="tryHash()" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Try Hash</button>--}}
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;" class="user-info" id="userPointsDiv">Your Points: {{ $userPoints }}</button>
         </div>
     </div>
@@ -70,8 +73,8 @@
             <div class="content-row">
                 <img src="/img/boat/Quest_casino_1.png?v1" alt="Description of Image" class="clickable-object">
                 <img src="/img/boat/Quest_boat_1.png?v1" alt="Description of Image" class="oldman-object" id="bubble" onclick="bubbleClicked()">
-                <img src="/img/boat/Quest_sign_1.png?v3" id="shopButton" alt="Description of Image" class="shopButton">
-                <img src="/img/boat/Quest_shop_1.png?v3" id="showAllEntriesButton" alt="Description of Image" class="previous-hash-results">
+                <img src="/img/boat/Quest_sign_1.png?v4" id="shopButton" alt="Description of Image" class="shopButton">
+                <img src="/img/boat/Quest_shop_1.png?v5" id="showAllEntriesButton" alt="Description of Image" class="previous-hash-results">
 
             </div>
         </div>
@@ -85,7 +88,6 @@
 @endif
 
 <script> var pastHashes = @json($pastHashes); </script>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="/js/hash.js?v={{ filemtime(public_path('/js/hash.js')) }}"></script>

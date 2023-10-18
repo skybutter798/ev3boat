@@ -116,8 +116,8 @@ class HashController extends Controller
         $data = json_decode($response->getBody(), true);
     
         if (isset($data['result']) && isset($data['result']['hash'])) {
-            //$blockHash = $data['result']['hash'];
-            $blockHash = "abc01";
+            $blockHash = $data['result']['hash'];
+            //$blockHash = "abc01";
             $etherscanLink = "https://etherscan.io/block/$blockHash"; // Construct the Etherscan link
     
             Log::channel('hash_info')->info('Successfully retrieved block hash', ['blockHash' => $blockHash, 'etherscanLink' => $etherscanLink]); // Log the block hash and the Etherscan link

@@ -29,6 +29,7 @@ function tryHash() {
 
             // Display the result using SweetAlert2
             Swal.fire({
+                ...defaultSwalConfig,
                 title: 'Hash Result',
                 html: `
                     <div>
@@ -89,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         const npcContainer = document.getElementById('npcContainer');
         npcContainer.style.display = 'none';
-        /*const closeNpcButton = document.getElementById('closeNpc');
+        const closeNpcButton = document.getElementById('closeNpc');
         const mainContainer = document.querySelector('.main-container');
 
         mainContainer.style.opacity = '0.2';
@@ -101,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
             mainContainer.style.pointerEvents = 'auto';
         });
         
-        bubbleClicked();*/
+        bubbleClicked();
 });
 
 
@@ -121,9 +122,10 @@ function firstMessage() {
     let closeSound = new Audio('/img/close.wav');
     
     Swal.fire({
-        title: 'Treasure Hunt',
-        text: 'Ahoy, adventurer! Welcome to the Island Treasure Hunt. Set your sights on our vast 50 x 50 grid and brace yourself for a journey like no other.',
-        imageUrl: '/img/whitelist.png?v1',
+        width: '50%',
+        title: 'Are You Whitelisted?',
+        text: 'Ahoy, young traveler! Im pleased to see familiar faces sticking around. Have you secured your position on the whitelist yet? Our vessel can only carry so many, and the seats are filling up fast. You might need to dig deep and rely on more than just luck to get a spot aboard.',
+        imageUrl: '/img/boat/Quest_info_1.png?v1',
         imageAlt: 'EV3 Hunt',
         showCancelButton: true,
         confirmButtonText: 'Next',
@@ -149,7 +151,7 @@ function firstMessage() {
             mainContainer.style.opacity = '1';
             mainContainer.style.pointerEvents = 'auto';
             const music = document.getElementById('backgroundMusic');
-            //music.play();
+            music.play();
             playMusicButton.style.display = 'none'; // Hide the play button after clicking
             muteButton.style.display = 'block';
         }
@@ -159,9 +161,10 @@ function firstMessage() {
 function secondMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
-        title: 'Island Secrets',
-        text: 'Within this expansive realm, the unexpected awaits you. Some squares might hide coveted whitelist spots, while others guard hidden treasures or elusive tickets. And sometimes, the grid may just test your patience with an empty spot, leaving your fate in the hands of luck.',
-        imageUrl: '/img/reward.png?v1',
+        width: '50%',
+        title: 'Feel Like A Winner',
+        text: 'If you re looking to earn your way to a ticket, there is a little gaming spot on the island. Many have tried their hand and walked away with a pocketful of coins. Who knows? With enough coins, you could buy yourself a ticket and join us on our journey',
+        imageUrl: '/img/boat/Quest_info_2.png?v2',
         imageAlt: 'Rewards',
         showCancelButton: true,
         confirmButtonText: 'Next',
@@ -197,9 +200,10 @@ function secondMessage() {
 function thirdMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
-        title: 'The Island’s Generosity',
-        text: 'By connecting with your Twitter, the island grants you the power of 2 clicks each day. As the clock resets at GMT+8 00:00, so do your chances. And if you ever find yourself eager for just one more chance, spread word of our land on Twitter, and an additional click shall be bestowed upon you.',
-        imageUrl: '/img/twittershare.png?v1',
+        width: '50%',
+        title: 'Island’s Friendly Neighborhood',
+        text: 'While you are wandering the island, dont forget to visit the local shops. Befriend the shopkeepers; they have their ears to the ground. Some of them might know a way to get a scalper tickets. It is always about who you know in places like this!',
+        imageUrl: '/img/boat/Quest_info_3.png?v1',
         imageAlt: 'Clicking Life',
         showCancelButton: true,
         confirmButtonText: 'Next',
@@ -236,8 +240,9 @@ function thirdMessage() {
 function fourthMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
+        width: '50%',
         title: 'Whispers of the Wind',
-        text: 'Always be on your guard, adventurer. The winds whisper of surprise events that might come your way. Our islands story unfolds on Twitter, so stay close and listen well. So, are you ready to test your mettle and seek out the treasures that await? The Island beckons! 🏝🔍🎁',
+        text: 'If you have managed to get your ticket, A hearty congratulations to you! While we wait for the others to join, why not explore the island? Theres plenty to see and experience here.',
         imageUrl: '/img/bluecode.png?v1',
         imageAlt: 'EV3 Blue Code',
         confirmButtonText: 'Ahoy!',
@@ -428,22 +433,22 @@ function checkUserForPopout() {
     });
 }
 
-
 document.querySelector('.clickable-object').addEventListener('click', function() {
     updateEntries(function(entries) {
+        const music = document.getElementById('backgroundMusic');
         Swal.fire({
-            //...defaultSwalConfig,
-            title: 'Choose Number',
+            ...defaultSwalConfig,
+            title: 'PLACE YOUR BET',
             customClass: {
-        popup: 'custom-swal'
-    },
+                popup: 'custom-swal'
+            },
             html: `
                 <div class="game-buttons-container">
                     ${[...Array(10).keys()].map(number => `<button id="btn${number}" class="game-button">${number}</button>`).join('')}
-                    ${['A', 'B', 'C', 'D', 'E'].map(letter => `<button id="btn${letter}" class="game-button">${letter}</button>`).join('')}
+                    ${['A', 'B', 'C', 'D', 'E', 'F'].map(letter => `<button id="btn${letter}" class="game-button">${letter}</button>`).join('')}
                 </div>
                 <div class="user-entries">
-                    <h3>Your Entries</h3>
+                    <h3 style="color:white">Pending Entries</h3>
                     ${entries.length === 0 ? "<p>You haven't made any entries yet.</p>" : `
                         <table>
                             <thead>
@@ -468,19 +473,53 @@ document.querySelector('.clickable-object').addEventListener('click', function()
                     `}
                 </div>
             `,
-            width: '60%',
+            width: '800px',
             showCloseButton: true,
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
             focusConfirm: false,
-            didOpen: () => { 
-                document.querySelectorAll('.game-button').forEach(button => {
+            didOpen: () => {
+                const clickMusic = document.getElementById('clickMusic');
+                clickMusic.play();
+                music.pause();
+
+                const buttons = document.querySelectorAll('.game-button');
+                let currentIndex = 0;
+                
+                function glowButton() {
+                    if (currentIndex > 0) {
+                        buttons[currentIndex - 1].classList.remove('glowing-effect');
+                    } else {
+                        buttons[buttons.length - 1].classList.remove('glowing-effect');
+                    }
+                
+                    buttons[currentIndex].classList.add('glowing-effect');
+                
+                    currentIndex++;
+                
+                    if (currentIndex >= buttons.length) {
+                        currentIndex = 0;
+                    }
+                
+                    setTimeout(glowButton, 500);
+                }
+                
+                glowButton();
+                
+                buttons.forEach(button => {
                     button.addEventListener('click', function() {
                         handleGameButtonClick(this.innerText);
                     });
                 });
+
+            },
+            didClose: () => {
+                const clickMusic = document.getElementById('clickMusic');
+                clickMusic.pause();
+                music.play();
             }
+
         });
     });
 });
@@ -599,12 +638,12 @@ function fetchPastHashes(page) {
                         ${pastHashesHtml}
                     </tbody>
                 </table>
-                <div class="pagination">
+                <div class="pagination" style="margin-top:15px">
                     <button ${data.prev_page_url ? '' : 'disabled'} onclick="fetchPastHashes(${data.current_page - 1})">Previous</button>
                     <button ${data.next_page_url ? '' : 'disabled'} onclick="fetchPastHashes(${data.current_page + 1})">Next</button>
                 </div>
             `,
-            width: '60%',
+            width: '40%',
         });
     });
 }
@@ -662,7 +701,7 @@ document.getElementById('shopButton').addEventListener('click', function() {
         const userPoints = userResponse.data.points; // Assuming the endpoint returns an object with a 'points' property
     
         let itemsHtml = `
-            <p id="pointsDisplay">Your Total Points: ${userPoints}</p>
+            <p id="pointsDisplay" style="color:white">Your Total Coins: ${userPoints}</p>
             <table class="shop-table">
                 <thead>
                     <tr>
@@ -678,8 +717,8 @@ document.getElementById('shopButton').addEventListener('click', function() {
                         <tr>
                             <td><img src="${item.image}" alt="${item.name}" width="50"></td>
                             <td>${item.name}</td>
-                            <td>${item.description}</td>
-                            <td>${item.cost} points</td>
+                            <td class="description-cell">${item.description}</td>
+                            <td>${item.cost} coins</td>
                             <td><button onclick="purchaseItem(${item.id})">Purchase</button></td>
                         </tr>
                     `).join('')}
@@ -689,9 +728,9 @@ document.getElementById('shopButton').addEventListener('click', function() {
 
         Swal.fire({
             ...defaultSwalConfig,
-            title: 'Shop Items',
+            width: '60%',
+            title: 'Not Secret Shop',
             html: itemsHtml,
-            width: '80%',
         });
     }));
 });
@@ -709,8 +748,8 @@ function purchaseItem(itemId) {
             }
             
             const updatedPoints = response.data.updatedPoints;
-            document.getElementById('userPointsDiv').textContent = `Your Total Points: ${updatedPoints}`;
-            document.getElementById('pointsDisplay').textContent = `Your Total Points: ${updatedPoints}`; // Update the points display
+            document.getElementById('userPointsDiv').textContent = `Your Total Coins: ${updatedPoints}`;
+            document.getElementById('pointsDisplay').textContent = `Your Total Coins: ${updatedPoints}`; // Update the points display
             
             if (response.data.item_id == 2) {
                 const twitterShareUrl = `https://twitter.com/intent/tweet?text=I%20got%20my%20adventure%20ticket%20to%20EV3%20!%20%23EV3%20%23BLUECODE&url=https://boat.ev3nft.xyz/`;
@@ -788,7 +827,8 @@ function showAllEntries(page) {
 
         Swal.fire({
             ...defaultSwalConfig,
-            title: 'All Entries',
+            title: 'Entries History',
+            width: '40%',
             html: `
                 <div class="all-entries">
                     <table>
@@ -812,16 +852,13 @@ function showAllEntries(page) {
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination-controls">
+                <div class="pagination-controls" style="margin-top:15px">
                     <button id="prevPage" ${currentPage <= 1 ? 'disabled' : ''} onclick="showAllEntries(${currentPage - 1})">Previous</button>
                     <span>Page ${currentPage} of ${lastPage}</span>
                     <button id="nextPage" ${currentPage >= lastPage ? 'disabled' : ''} onclick="showAllEntries(${currentPage + 1})">Next</button>
                 </div>
             `,
-            width: '80%',
             showCloseButton: true,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
             showConfirmButton: false,
             focusConfirm: false
         });

@@ -26,17 +26,7 @@ class HashController extends Controller
         
         if (Auth::check()) {
             $user = Auth::user();
-        
-            // Check how many entries the user has made today
-            $todayClicks = \App\Models\Entry::where('user_id', $user->id)
-                         ->whereDate('created_at', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
-                         ->count();
-                             
-            if ($todayClicks > 2) {
-                $remainingClicks = 0;
-            } else {
-                $remainingClicks = 3 - $todayClicks;
-            }
+            $remainingClicks = $user->clicks; // Use the clicks column directly
         }
         $userCriteriaFulfilled = false;
     
@@ -67,44 +57,49 @@ class HashController extends Controller
                 ->get();
 
         }
+        
+        $userPoints = 0; // Default value
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            $remainingClicks = $user->clicks; // Use the clicks column directly
+            $userPoints = $user->points; // Fetch the user's points
+        }
     
         $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->paginate(10);
     
-        return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash'));
+        return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash', 'userPoints'));
     }
 
     
     public function handleButtonClick(Request $request)
     {
         $buttonValue = $request->input('buttonValue');
-    
+        
         if (!Auth::check()) {
             return response()->json(['message' => 'User not authenticated'], 403);
         }
-    
+        
         $user = Auth::user();
-    
-        $todayClicks = \App\Models\Entry::where('user_id', $user->id)
-                     ->whereDate('created_at', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
-                     ->count();
-                     
-        if ($todayClicks >= 3) {
+        
+        if ($user->clicks <= 0) {
             return response()->json(['status' => 'error', 'message' => 'No clicks remaining for today']);
         }
-    
+        
+        // Deduct a click from the user
+        $user->clicks -= 1;
+        $user->save();
+        
         // Store the user's entry
         $entry = new \App\Models\Entry();
         $entry->user_id = $user->id;
         $entry->entry_value = $buttonValue;
         $entry->save();
-        
-        $remainingClicks = 3 - \App\Models\Entry::where('user_id', $user->id)
-                     ->whereDate('created_at', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
-                     ->count();
-        
-        return response()->json(['status' => 'success', 'message' => 'Entry saved. Wait for the result.', 'remainingClicks' => $remainingClicks]);
-        
+        Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' clicked on number: ' . $buttonValue);
+
+        return response()->json(['status' => 'success', 'message' => 'Entry saved. Wait for the result.', 'remainingClicks' => $user->clicks]);
     }
+
 
 
 
@@ -204,24 +199,87 @@ class HashController extends Controller
     
         $item = \App\Models\ShopItem::find($itemId);
     
-        if ($user->points >= $item->cost) {
-            $user->points -= $item->cost;
-            $user->save();
-    
-            // Optionally, you can save a record of the purchase in another table
-    
-            return response()->json(['status' => 'success', 'message' => 'Purchase successful!']);
-        } else {
+        if ($user->points < $item->cost) {
             return response()->json(['status' => 'error', 'message' => 'Not enough points.']);
         }
+    
+        // If purchasing item 2, check if the user already has a wallet address
+        if ($itemId == 2 && !empty($user->wallet_address)) {
+            return response()->json(['status' => 'error', 'message' => 'You already got your whitelist ticket.']);
+        }
+    
+        // Deduct points and update user data
+        $user->points -= $item->cost;
+    
+        switch ($itemId) {
+            case 1:
+                $user->clicks += 2;
+                break;
+            case 2:
+                // Additional logic for item 2 can be added here if needed
+                break;
+        }
+    
+        $user->save();
+    
+        Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' purchased item with ID: ' . $itemId . ' Balance: ' . $user->points);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Purchase successful!',
+            'item_id' => $itemId,
+            'updatedPoints' => $user->points,
+            'updatedClicks' => $user->clicks
+        ]);
     }
+
+
+
     
     public function getPastHashes()
     {
         $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->paginate(10);
         return response()->json($pastHashes);
     }
+    
+    public function getUserInfo() {
+        $user = Auth::user();
+    
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 403);
+        }
+    
+        return response()->json([
+            'points' => $user->points,
+            'clicks' => $user->clicks // Assuming you've added a 'clicks' column to your users table
+        ]);
+    }
 
+    public function getAllEntries(Request $request)
+    {
+        $page = $request->input('page', 1);
+        $perPage = 10; // Number of entries per page
+    
+        $entries = \App\Models\Entry::where('user_id', Auth::id())
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($perPage, ['*'], 'page', $page);
+    
+        return response()->json($entries);
+    }
+    
+    public function checkWalletAddress(Request $request)
+    {
+        $user = Auth::user();
 
+        // Check if the user is authenticated
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 403);
+        }
+
+        // Check if the user has a wallet address saved
+        $hasWalletAddress = !empty($user->wallet_address);
+
+        return response()->json(['hasWalletAddress' => $hasWalletAddress]);
+    }
 
 }

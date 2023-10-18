@@ -52,7 +52,6 @@
         @endif
         <div id="countdown" style="color:white; margin-left: 20px;">Time left: 00:00:00</div>
         <div style="display: flex; align-items: center;">
-            <button id="bubble" onclick="bubbleClicked()" class="play-sound" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Info</button>
             <button id="playMusicButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Music</button>
             <button id="muteButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin; display:none">Mute</button>
             
@@ -60,17 +59,20 @@
             <button id="userListButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;" onclick="showClickedUsers()">Whitelist Hall</button>
             @if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Whitelist available : {{ count($remain) }}</button>
+            <button id="previousResultsButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">History</button>
             <button onclick="tryHash()" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Try Hash</button>
+            <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;" class="user-info" id="userPointsDiv">Your Points: {{ $userPoints }}</button>
         </div>
     </div>
     
     <div class="game-container">
         <div class="main-content">
             <div class="content-row">
-                <a href="#" class="clickable-object"></a>
-                <a href="#" class="previous-hash-results" id="previousResultsButton"></a>
-                <button id="shopButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Shop</button>
-                
+                <img src="/img/boat/Quest_casino_1.png?v1" alt="Description of Image" class="clickable-object">
+                <img src="/img/boat/Quest_boat_1.png?v1" alt="Description of Image" class="oldman-object" id="bubble" onclick="bubbleClicked()">
+                <img src="/img/boat/Quest_sign_1.png?v3" id="shopButton" alt="Description of Image" class="shopButton">
+                <img src="/img/boat/Quest_shop_1.png?v3" id="showAllEntriesButton" alt="Description of Image" class="previous-hash-results">
+
             </div>
         </div>
     </div>

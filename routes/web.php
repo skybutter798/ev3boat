@@ -17,9 +17,6 @@ Route::post('/wallet', [GameController::class, 'saveWalletAddress'])->middleware
 Route::post('/updateStatus', [GameController::class, 'updateStatus']);
 Route::post('/recordReward', [GameController::class, 'recordReward']);
 Route::get('/checkWinStatus', [GameController::class, 'checkWinStatus']);
-//Route::get('/watercave', [GameController::class, 'watercave']);
-//Route::post('/update-watercave', [GameController::class, 'updateWatercave']);
-//Route::get('/WATERCAVE', function() {return redirect('/watercave');});
 Route::get('/clicked-users', [GameController::class, 'getClickedUsers']);
 Route::get('/cash', [GameController::class, 'checkUserForPopout']);
 Route::get('/reward-users', [GameController::class, 'getRewardUsers']);
@@ -31,3 +28,5 @@ Route::get('/get-user-entries', [HashController::class, 'getUserEntries']);
 Route::get('/shop-items', [HashController::class, 'getShopItems']);
 Route::post('/purchase-item', [HashController::class, 'purchaseItem']);
 Route::get('/past-hashes', [HashController::class, 'getPastHashes']);
+Route::get('/user-info', [HashController::class, 'getUserInfo'])->middleware('auth');
+Route::get('/get-all-entries', [HashController::class, 'getAllEntries']);

@@ -144,6 +144,12 @@ return [
             'path' => storage_path('logs/hash_info.log'),
             'level' => 'info',
         ],
+        
+        'number_click' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/number_click.log'),
+            'level' => 'info',
+        ],
     ],
 
 ];

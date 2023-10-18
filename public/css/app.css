@@ -106,10 +106,6 @@ h3 {
     opacity: 0.5; /* Makes the grid items look faded */
 }
 
-.custom-swal {
-    background-image: var(--grid-item-bg-image);
-    background-size: cover;
-}
 
 .swal2-actions {
     flex-direction: row !important;  /* Make buttons stack horizontally */

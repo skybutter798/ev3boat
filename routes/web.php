@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\HashController;
+use App\Http\Controllers\AuthController;  // Import the AuthController
+
+Route::get('/game', [GameController::class, 'index']);
+
+Route::post('/checkGrid', [GameController::class, 'checkGrid']);
+
+// Use the array syntax for AuthController routes
+Route::get('login/twitter', [AuthController::class, 'redirectToTwitter'])->name('login.twitter');
+Route::get('login/twitter/callback', [AuthController::class, 'handleTwitterCallback']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/wallet', [GameController::class, 'saveWalletAddress'])->middleware('auth');
+Route::post('/updateStatus', [GameController::class, 'updateStatus']);
+Route::post('/recordReward', [GameController::class, 'recordReward']);
+Route::get('/checkWinStatus', [GameController::class, 'checkWinStatus']);
+//Route::get('/watercave', [GameController::class, 'watercave']);
+//Route::post('/update-watercave', [GameController::class, 'updateWatercave']);
+//Route::get('/WATERCAVE', function() {return redirect('/watercave');});
+Route::get('/clicked-users', [GameController::class, 'getClickedUsers']);
+Route::get('/cash', [GameController::class, 'checkUserForPopout']);
+Route::get('/reward-users', [GameController::class, 'getRewardUsers']);
+
+Route::get('/', [HashController::class, 'index']);
+Route::post('/hit', [HashController::class, 'handleButtonClick']);
+Route::get('/hash', [HashController::class, 'getLatestBlockHash']);
+Route::get('/get-user-entries', [HashController::class, 'getUserEntries']);

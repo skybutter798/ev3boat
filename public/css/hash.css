@@ -36,7 +36,7 @@ th, td {
     align-items: center;
     padding: 20px;
     margin: 0 auto;
-    background-image: url('/img/boat/Quest_island_1.png?v2');
+    background-image: url('/img/boat/Quest_island_1.png?v3');
     background-size: contain; /* This will cover the entire viewport */
     background-repeat: no-repeat; /* This will prevent the image from repeating */
     background-position: center center; /* This will center the image */
@@ -48,8 +48,8 @@ th, td {
 
 .previous-hash-results {
     position: absolute;
-    top: 47%; /* Adjust these values to move the object to the desired spot */
-    left: 72%;
+    top: 46%; /* Adjust these values to move the object to the desired spot */
+    left: 73%;
     width: 34px; /* Size of the clickable area */
     height: 41px;
     cursor: pointer;
@@ -82,6 +82,16 @@ th, td {
     left: 59%;
     width: 70px; /* Size of the clickable area */
     height: 70px;
+    cursor: pointer;
+    border: none; /* Remove any default borders */
+}
+
+.stone {
+    position: absolute;
+    top: 35%; /* Adjust these values to move the object to the desired spot */
+    left: 44%;
+    width: 49px; /* Size of the clickable area */
+    height: 52px;
     cursor: pointer;
     border: none; /* Remove any default borders */
 }

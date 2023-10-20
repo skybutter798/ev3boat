@@ -260,12 +260,14 @@ class HashController extends Controller
         $page = $request->input('page', 1);
         $perPage = 10; // Number of entries per page
     
-        $entries = \App\Models\Entry::where('user_id', Auth::id())
+        $entries = \App\Models\Entry::with(['blockHash'])
+                    ->where('user_id', Auth::id())
                     ->orderBy('created_at', 'desc')
                     ->paginate($perPage, ['*'], 'page', $page);
     
         return response()->json($entries);
     }
+
     
     public function checkWalletAddress(Request $request)
     {

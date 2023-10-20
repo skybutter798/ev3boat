@@ -122,7 +122,7 @@ function firstMessage() {
     let closeSound = new Audio('/img/close.wav');
     
     Swal.fire({
-        width: '50%',
+        width: '40%',
         title: 'Are You Whitelisted?',
         text: 'Ahoy, young traveler! Im pleased to see familiar faces sticking around. Have you secured your position on the whitelist yet? Our vessel can only carry so many, and the seats are filling up fast. You might need to dig deep and rely on more than just luck to get a spot aboard.',
         imageUrl: '/img/boat/Quest_info_1.png?v1',
@@ -161,7 +161,7 @@ function firstMessage() {
 function secondMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
-        width: '50%',
+        width: '40%',
         title: 'Feel Like A Winner',
         text: 'If you re looking to earn your way to a ticket, there is a little gaming spot on the island. Many have tried their hand and walked away with a pocketful of coins. Who knows? With enough coins, you could buy yourself a ticket and join us on our journey',
         imageUrl: '/img/boat/Quest_info_2.png?v2',
@@ -200,7 +200,7 @@ function secondMessage() {
 function thirdMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
-        width: '50%',
+        width: '40%',
         title: 'Island’s Friendly Neighborhood',
         text: 'While you are wandering the island, dont forget to visit the local shops. Befriend the shopkeepers; they have their ears to the ground. Some of them might know a way to get a scalper tickets. It is always about who you know in places like this!',
         imageUrl: '/img/boat/Quest_info_3.png?v1',
@@ -240,7 +240,7 @@ function thirdMessage() {
 function fourthMessage() {
     let closeSound = new Audio('/img/close.wav');
     Swal.fire({
-        width: '50%',
+        width: '40%',
         title: 'Whispers of the Wind',
         text: 'If you have managed to get your ticket, A hearty congratulations to you! While we wait for the others to join, why not explore the island? Theres plenty to see and experience here.',
         imageUrl: '/img/bluecode.png?v1',
@@ -648,14 +648,6 @@ function fetchPastHashes(page) {
     });
 }
 
-/*function getTimeRemaining() {
-    const now = new Date();
-    const nextMinute = new Date(now);
-    nextMinute.setMinutes(now.getMinutes() + 1);
-    nextMinute.setSeconds(0);
-    return nextMinute - now;
-}*/
-
 function getTimeRemaining() {
     const now = new Date();
     const nextHour = new Date(now);
@@ -692,6 +684,50 @@ function startCountdown() {
 startCountdown();
 
 document.getElementById('shopButton').addEventListener('click', function() {
+    axios.all([
+        axios.get('/shop-items'),
+        axios.get('/user-info')
+    ])
+    .then(axios.spread((shopResponse, userResponse) => {
+        const items = shopResponse.data;
+        const userPoints = userResponse.data.points; // Assuming the endpoint returns an object with a 'points' property
+    
+        let itemsHtml = `
+            <p id="pointsDisplay" style="color:white">Your Total Coins: ${userPoints}</p>
+            <table class="shop-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Cost</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map(item => `
+                        <tr>
+                            <td><img src="${item.image}" alt="${item.name}" width="50"></td>
+                            <td>${item.name}</td>
+                            <td class="description-cell">${item.description}</td>
+                            <td>${item.cost} coins</td>
+                            <td><button onclick="purchaseItem(${item.id})">Purchase</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        Swal.fire({
+            ...defaultSwalConfig,
+            width: '60%',
+            title: 'Not Secret Shop',
+            html: itemsHtml,
+        });
+    }));
+});
+
+document.getElementById('showStone').addEventListener('click', function() {
     axios.all([
         axios.get('/shop-items'),
         axios.get('/user-info')
@@ -821,6 +857,7 @@ function showAllEntries(page) {
         }
     })
     .then(response => {
+        console.log(response.data);
         const entries = response.data.data;
         const currentPage = response.data.current_page;
         const lastPage = response.data.last_page;
@@ -844,12 +881,13 @@ function showAllEntries(page) {
                             ${entries.map(entry => `
                                 <tr>
                                     <td>${entry.entry_value}</td>
-                                    <td>${entry.actual_result ? `<a href="${entry.hash_link}" target="_blank">${entry.actual_result.substr(-1)}</a>` : 'N/A'}</td>
+                                    <td>${entry.block_hash && entry.block_hash.hash ? `<a href="${entry.block_hash.link}" target="_blank">${entry.block_hash.hash.substr(-1)}</a>` : 'N/A'}</td>
                                     <td>${entry.result}</td>
                                     <td>${new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
+
                     </table>
                 </div>
                 <div class="pagination-controls" style="margin-top:15px">

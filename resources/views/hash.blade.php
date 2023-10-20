@@ -60,8 +60,10 @@
             
             <button id="userRewardButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;" onclick="showRewardUsers()">Special Prize Hall</button>
             <button id="userListButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;" onclick="showClickedUsers()">Whitelist Hall</button>
-            @if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif
-            <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Whitelist available : {{ count($remain) }}</button>
+            
+            {{--@if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif--}}
+            
+            <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Whitelist available : 100</button>
             <button id="previousResultsButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">History</button>
             {{--<button onclick="tryHash()" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Try Hash</button>--}}
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;" class="user-info" id="userPointsDiv">Your Points: {{ $userPoints }}</button>
@@ -71,10 +73,11 @@
     <div class="game-container">
         <div class="main-content">
             <div class="content-row">
-                <img src="/img/boat/Quest_casino_1.png?v1" alt="Description of Image" class="clickable-object">
-                <img src="/img/boat/Quest_boat_1.png?v1" alt="Description of Image" class="oldman-object" id="bubble" onclick="bubbleClicked()">
-                <img src="/img/boat/Quest_sign_1.png?v4" id="shopButton" alt="Description of Image" class="shopButton">
-                <img src="/img/boat/Quest_shop_1.png?v5" id="showAllEntriesButton" alt="Description of Image" class="previous-hash-results">
+                <img src="/img/boat/Quest_casino_1.png?v2" alt="CHICKEN DINNER" class="clickable-object">
+                <img src="/img/boat/Quest_boat_1.png?v3" alt="FKIN OLDMAN" class="oldman-object" id="bubble" onclick="bubbleClicked()">
+                <img src="/img/boat/Quest_sign_1.png?v6" id="shopButton" alt="NPCSHOP" class="shopButton">
+                <img src="/img/boat/Quest_shop_1.png?v8" id="showAllEntriesButton" alt="YOUR FATE" class="previous-hash-results">
+                <img src="/img/boat/Quest_info_stone.png?v1" id="showStone" alt="MagciStone" class="stone">
 
             </div>
         </div>

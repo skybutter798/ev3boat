@@ -23,10 +23,13 @@ Route::get('/reward-users', [GameController::class, 'getRewardUsers']);
 
 Route::get('/', [HashController::class, 'index']);
 Route::post('/hit', [HashController::class, 'handleButtonClick']);
-Route::get('/hash', [HashController::class, 'getLatestBlockHash']);
+//Route::get('/hash', [HashController::class, 'getLatestBlockHash']);
 Route::get('/get-user-entries', [HashController::class, 'getUserEntries']);
 Route::get('/shop-items', [HashController::class, 'getShopItems']);
 Route::post('/purchase-item', [HashController::class, 'purchaseItem']);
 Route::get('/past-hashes', [HashController::class, 'getPastHashes']);
 Route::get('/user-info', [HashController::class, 'getUserInfo'])->middleware('auth');
 Route::get('/get-all-entries', [HashController::class, 'getAllEntries']);
+Route::post('/stone', [HashController::class, 'stone']);
+Route::post('/recordReward', [HashController::class, 'recordReward']);
+Route::get('/checkWinStatus', [HashController::class, 'checkWinStatus']);

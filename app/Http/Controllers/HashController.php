@@ -21,17 +21,20 @@ class HashController extends Controller
     public function index()
     {
         $remainingClicks = 0; // Default value
+        $userGolds = 0; // Default value
+        $userPoints = 0; // Default value
         $remain = \App\Models\Grid::where('clicked', 0)->where('reward_item_id', 1)->get();
         $password = config('assets.password');
         
-        if (Auth::check()) {
-            $user = Auth::user();
-            $remainingClicks = $user->clicks; // Use the clicks column directly
+        $user = Auth::user();
+        if ($user) {
+            $remainingClicks = $user->clicks; 
+            $userPoints = $user->points; 
+            $userGolds = $user->golds; 
         }
+        
         $userCriteriaFulfilled = false;
-    
-        if (Auth::check()) {
-            $user = Auth::user();
+        if ($user) {
             $grid = Grid::where('user_id', $user->id)
                         ->where('clicked', 1)
                         ->where('reward_item_id', 2)
@@ -48,28 +51,22 @@ class HashController extends Controller
         $latestBlockHash = \App\Models\BlockHash::latest('created_at')->first();
         
         $userEntries = [];
-        if (Auth::check()) {
-            $user = Auth::user();
+        if ($user) {
             $userEntries = \App\Models\Entry::where('user_id', $user->id)
                 ->join('block_hashes', 'entries.blockhash_id', '=', 'block_hashes.id')
                 ->select('entries.*', 'block_hashes.hash as actual_result', 'block_hashes.link as hash_link')
                 ->orderBy('entries.created_at', 'desc')
                 ->get();
-
         }
         
-        $userPoints = 0; // Default value
-
-        if (Auth::check()) {
-            $user = Auth::user();
-            $remainingClicks = $user->clicks; // Use the clicks column directly
-            $userPoints = $user->points; // Fetch the user's points
-        }
-    
         $pastHashes = \App\Models\BlockHash::orderBy('retrieved_at', 'desc')->paginate(10);
+        $totalUsers = 226;
+        $whitelistCount = $totalUsers - \App\Models\User::whereNotNull('wallet_address')->count();
     
-        return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash', 'userPoints'));
+        return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash', 'userPoints', 'userGolds', 'whitelistCount', 'totalUsers'));
+        //return view('hash', compact('grids', 'remainingClicks', 'remain', 'password', 'userCriteriaFulfilled', 'userEntries', 'pastHashes', 'latestBlockHash', 'userPoints', 'userGolds'));
     }
+
 
     
     public function handleButtonClick(Request $request)
@@ -83,8 +80,9 @@ class HashController extends Controller
         $user = Auth::user();
         
         if ($user->clicks <= 0) {
-            return response()->json(['status' => 'error', 'message' => 'No clicks remaining for today']);
+            return response()->json(['status' => 'error', 'message' => 'Alas! The sands of time have run out, and you have no clicks remaining for today.']);
         }
+
         
         // Deduct a click from the user
         $user->clicks -= 1;
@@ -97,18 +95,19 @@ class HashController extends Controller
         $entry->save();
         Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' clicked on number: ' . $buttonValue);
 
-        return response()->json(['status' => 'success', 'message' => 'Entry saved. Wait for the result.', 'remainingClicks' => $user->clicks]);
+        return response()->json([
+            'status' => 'success', 
+            'message' => 'Your entry has been recorded in the ancient scrolls. Await the oracle\'s revelation.', 
+            'remainingClicks' => $user->clicks
+        ]);
+
     }
 
-
-
-
-    
     public function getLatestBlockHash()
     {
-        Log::channel('hash_info')->info('Called getLatestBlockHash function'); // Log that the function has been called
+        Log::channel('hash_info')->info('Called getLatestBlockHash function');
     
-        $apiKey = '3BAH17RC7NK7SRBR8KE41TUNWBIVNYK4DE'; // Replace with your Etherscan API key
+        $apiKey = '3BAH17RC7NK7SRBR8KE41TUNWBIVNYK4DE';
         $url = "https://api.etherscan.io/api?module=proxy&action=eth_getBlockByNumber&tag=latest&boolean=true&apikey=$apiKey";
     
         $client = new Client();
@@ -118,18 +117,16 @@ class HashController extends Controller
         if (isset($data['result']) && isset($data['result']['hash'])) {
             $blockHash = $data['result']['hash'];
             //$blockHash = "abc01";
-            $etherscanLink = "https://etherscan.io/block/$blockHash"; // Construct the Etherscan link
+            $etherscanLink = "https://etherscan.io/block/$blockHash";
     
-            Log::channel('hash_info')->info('Successfully retrieved block hash', ['blockHash' => $blockHash, 'etherscanLink' => $etherscanLink]); // Log the block hash and the Etherscan link
+            Log::channel('hash_info')->info('Successfully retrieved block hash', ['blockHash' => $blockHash, 'etherscanLink' => $etherscanLink]); 
     
-            // Store the block hash in the database
             $blockHashModel = new BlockHash;
             $blockHashModel->hash = $blockHash;
             $blockHashModel->link = $etherscanLink;
-            $blockHashModel->retrieved_at = now(); // Current timestamp
+            $blockHashModel->retrieved_at = now();
             $blockHashModel->save();
     
-            // Check the winning entries after saving the block hash
             $this->checkWinningEntries($blockHash);
     
             return [
@@ -137,7 +134,7 @@ class HashController extends Controller
                 'etherscanLink' => $etherscanLink
             ];
         }
-        Log::error('Failed to retrieve block hash from Etherscan'); // Log an error message if the block hash is not found in the response
+        Log::error('Failed to retrieve block hash from Etherscan');
     
         return null;
     }
@@ -199,13 +196,22 @@ class HashController extends Controller
     
         $item = \App\Models\ShopItem::find($itemId);
     
+        // Check if user has won and is trying to purchase item 3
+        if ($itemId == 3) {
+            $hasWon = DB::table('rewards')->where('user_id', $user->id)->exists();
+    
+            if ($hasWon) {
+                return response()->json(['status' => 'error', 'message' => 'Alas! You have already claimed your raffle ticket, and cannot purchase this item again.']);
+            }
+        }
+    
         if ($user->points < $item->cost) {
-            return response()->json(['status' => 'error', 'message' => 'Not enough points.']);
+            return response()->json(['status' => 'error', 'message' => 'Oh no! You do not have enough gold coins.']);
         }
     
         // If purchasing item 2, check if the user already has a wallet address
         if ($itemId == 2 && !empty($user->wallet_address)) {
-            return response()->json(['status' => 'error', 'message' => 'You already got your whitelist ticket.']);
+            return response()->json(['status' => 'error', 'message' => 'Fear not, for you have already secured your whitelist ticket to the enchanted lands.']);
         }
     
         // Deduct points and update user data
@@ -226,15 +232,12 @@ class HashController extends Controller
     
         return response()->json([
             'status' => 'success',
-            'message' => 'Purchase successful!',
+            'message' => 'Congratulations! Your purchase was successful. May your journey be filled with fortune and glory!',
             'item_id' => $itemId,
             'updatedPoints' => $user->points,
             'updatedClicks' => $user->clicks
         ]);
     }
-
-
-
     
     public function getPastHashes()
     {
@@ -282,6 +285,83 @@ class HashController extends Controller
         $hasWalletAddress = !empty($user->wallet_address);
 
         return response()->json(['hasWalletAddress' => $hasWalletAddress]);
+    }
+    
+    public function stone(Request $request)
+    {
+        $user = Auth::user();
+    
+        if ($user->points < 5) {
+            return response()->json(['status' => 'error', 'message' => 'your coffers lack the necessary 5 gold coins.']);
+        }
+    
+        $user->points -= 5;
+        $user->save();
+    
+        $randomNumber = rand(1, 10);
+    
+        if ($randomNumber === 8) {
+            $user->golds++;
+            $user->save();
+            Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' won a special reward! ' . $randomNumber . ' Balance: ' . $user->points . ' Golds: ' . $user->golds);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Fortune smiles upon you! You have unearthed a golden treasure!',
+                'updatedPoints' => $user->points,
+                'updatedGolds' => $user->golds, // corrected property name
+            ]);
+        } else {
+            Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' did not win the special reward. ' . $randomNumber . ' Balance: ' . $user->points . ' Golds: ' . $user->golds);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'The gods of fortune were not in your favor. Better luck next time!',
+                'updatedPoints' => $user->points,
+                'updatedGolds' => $user->golds, // corrected property name
+            ]);
+        }
+    }
+
+    public function recordReward(Request $request) {
+        try {
+            $userId = $request->input('user_id');
+            $rewardType = $request->input('reward_type');
+    
+            if (Auth::id() == $userId) {
+                DB::table('rewards')->insert([
+                    'user_id' => $userId,
+                    'reward_type' => $rewardType,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+    
+                return response()->json(['success' => true, 'message' => 'Congratulations, adventurer! Your reward has been etched into the annals of history.']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'The scrolls do not recognize this command.'], 403);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Alas, an ancient curse has thwarted our attempt. ' . $e->getMessage()], 500);
+        }
+    }
+
+    
+    public function checkWinStatus(Request $request) {
+        try {
+            $userId = $request->input('user_id');
+    
+            if (Auth::id() == $userId) {
+                $hasWon = DB::table('rewards')->where('user_id', $userId)->exists();
+    
+                if ($hasWon) {
+                    return response()->json(['success' => false, 'message' => 'Alas, the fates have spoken. Your name is etched in the annals of victors, and the quest for this reward is no longer yours to claim.']);
+                } else {
+                    return response()->json(['success' => true, 'message' => 'The path to victory is still shrouded in mystery. Forge ahead, brave adventurer, for your tale has yet to be written.']);
+                }
+            } else {
+                return response()->json(['success' => false, 'message' => 'Unauthorized action'], 403);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error checking win status: ' . $e->getMessage()], 500);
+        }
     }
 
 }

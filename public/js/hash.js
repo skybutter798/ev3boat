@@ -530,9 +530,7 @@ function updateEntries(callback, updateModal = false) {
         const entries = response.data;
         console.log(entries); // Log the entries here
         callback(entries);
-
         if (updateModal) {
-            
             const userEntriesDiv = document.querySelector('.user-entries');
             userEntriesDiv.innerHTML = `
                 <h3>Your Entries</h3>
@@ -693,7 +691,7 @@ document.getElementById('shopButton').addEventListener('click', function() {
         const userPoints = userResponse.data.points; // Assuming the endpoint returns an object with a 'points' property
     
         let itemsHtml = `
-            <p id="pointsDisplay" style="color:white">Your Total Coins: ${userPoints}</p>
+            <p id="pointsDisplay" style="color:white">Your Coins: ${userPoints}</p>
             <table class="shop-table">
                 <thead>
                     <tr>
@@ -727,49 +725,84 @@ document.getElementById('shopButton').addEventListener('click', function() {
     }));
 });
 
-document.getElementById('showStone').addEventListener('click', function() {
-    axios.all([
-        axios.get('/shop-items'),
-        axios.get('/user-info')
-    ])
-    .then(axios.spread((shopResponse, userResponse) => {
-        const items = shopResponse.data;
-        const userPoints = userResponse.data.points; // Assuming the endpoint returns an object with a 'points' property
+document.getElementById('stone').addEventListener('click', function() {
+    let stoneSound = new Audio('/img/boat/stone.wav');
+    stoneSound.play();
+      Swal.fire({
+        ...defaultSwalConfig,
+        title: 'Midas Stone',
+        text: "Congratulations, brave adventurer! You've discovered the legendary Midas Stone, hidden away in the depths of the ancient ruins. Here, you have the opportunity to spend 5 of your hard-earned coins for a chance to turn ordinary objects into gleaming gold! Will you take the risk and test the stone's mythical powers?",
+        imageUrl: '/img/boat/Quest_midas_1.png',
+        imageWidth: 400,
+        imageHeight: 400,
+        imageAlt: 'Quest Midas 1',
+        showCancelButton: true,
+        confirmButtonText: 'Spend 5 coins',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.post('/stone', {})
+          .then(response => {
+            const data = response.data;
+            if (data.status === 'success') {
+                document.getElementById('userPointsDiv').textContent = 'Your Coins: ' + data.updatedPoints;
+                document.getElementById('userGoldsDiv').textContent = 'Your Coins: ' + data.updatedGolds;
     
-        let itemsHtml = `
-            <p id="pointsDisplay" style="color:white">Your Total Coins: ${userPoints}</p>
-            <table class="shop-table">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Cost</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${items.map(item => `
-                        <tr>
-                            <td><img src="${item.image}" alt="${item.name}" width="50"></td>
-                            <td>${item.name}</td>
-                            <td class="description-cell">${item.description}</td>
-                            <td>${item.cost} coins</td>
-                            <td><button onclick="purchaseItem(${item.id})">Purchase</button></td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-
-        Swal.fire({
-            ...defaultSwalConfig,
-            width: '60%',
-            title: 'Not Secret Shop',
-            html: itemsHtml,
-        });
-    }));
+              if (data.message === 'Congratulations! You have won a special reward!') {
+                Swal.fire({
+                    ...defaultSwalConfig,
+                  title: 'Victory!',
+                  text: 'Fortune smiles upon you! You have unearthed a rare and valuable treasure!',
+                  //icon: 'success',
+                  imageUrl: '/img/boat/Quest_midas_4.png',
+                  imageWidth: 400,
+                  imageHeight: 400,
+                  imageAlt: 'Quest Midas 1',
+                });
+              } else {
+                Swal.fire({
+                    ...defaultSwalConfig,
+                  title: 'Boomblek!',
+                  text: 'The fates have not favored you this time. The treasure remains elusive.',
+                  //icon: 'error',
+                  imageUrl: '/img/boat/Quest_midas_2.png',
+                  imageWidth: 400,
+                  imageHeight: 400,
+                  imageAlt: 'Quest Midas 1',
+                });
+              }
+            } else {
+              Swal.fire({
+                  ...defaultSwalConfig,
+                title: 'Curses!',
+                text: 'A dark cloud has cast its shadow upon your quest. ' + data.message,
+                //icon: 'error',
+                imageUrl: '/img/boat/Quest_midas_3.png',
+                imageWidth: 400,
+                imageHeight: 400,
+                imageAlt: 'Quest Midas 1',
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Beware:', error);
+            Swal.fire({
+                ...defaultSwalConfig,
+              title: 'Peril!',
+              text: 'A mysterious force has interfered with your quest. Please gather your courage and try again later.',
+              //icon: 'error',
+              imageUrl: '/img/boat/Quest_midas_3.png',
+              imageWidth: 400,
+              imageHeight: 400,
+              imageAlt: 'Quest Midas 1',
+            });
+          });
+        }
+      });
 });
+
+
+
+
 
 function purchaseItem(itemId) {
     let winSound = new Audio('/img/win.wav');
@@ -783,12 +816,70 @@ function purchaseItem(itemId) {
                 document.getElementById('remainingClicksDiv').textContent = `You have ${updatedClicks} clicks left for today.`;
             }
             
+            if (itemId === 3) {
+                const twitterShareUrl = `https://twitter.com/intent/tweet?text=Behold%2C%20I%20have%20secured%20my%20golden%20ticket%20to%20the%20mystical%20realm%20of%20EV3%2C%20where%20treasures%20and%20special%20raffle%20prizes%20await%20the%20bravest%20adventurers%21%20Will%20you%20join%20me%20on%20this%20epic%20quest%3F%20%23EV3%20%23BLUECODE&url=https://boat.ev3nft.xyz/`;
+                winSound.play();
+                (async () => {
+                    const userWinStatus = await checkUserWinStatus(window.userId);
+                    let message, icon, imageUrl, rewardReceived = false;
+            
+                    if (!userWinStatus) {
+                        message = 'Your ID is already registered in the database, and we will notice you on game day.';
+                        icon = 'info';
+                    } else {
+                        message = 'Congratulations! You found a special reward! You have secured a ticket for the grand raffle, granting you a chance to win any of the items listed above! We have noted your entry. You dont need to do anything further for now. Continue your search for the whitelist!';
+                        icon = 'success';
+                        imageUrl = '/img/special2.png';
+                        winSound.play();
+                        rewardReceived = true;
+                    }
+            
+                    console.log("Logging user_id:", window.userId);
+                    // console.log("Logging number:", rewardChance); // rewardChance is not defined in the provided code
+            
+                    if (rewardReceived) {
+                        axios.post('/recordReward', {
+                            user_id: window.userId,
+                            reward_type: "special",
+                        })
+                        .then(response => {
+                            if (response.data.success) {
+                                console.log("Reward recorded successfully!");
+                            } else {
+                                console.error("Failed to record the reward.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error recording the reward:", error);
+                        });
+            
+                        Swal.fire({
+                            title: 'Flying Code',
+                            text: message,
+                            imageUrl: imageUrl,
+                            background: 'black',
+                            showConfirmButton: false,
+                            customClass: {
+                                title: 'custom-title-color',
+                                htmlContainer: 'custom-text-color',
+                            },
+                            html: `
+                                Congratulations! You found a special reward! You have secured a ticket for the grand raffle, granting you a chance to win any of the items listed above! We have noted your entry. You don't need to do anything further for now. Continue your search for the whitelist!
+                                <br><br>
+                                <a href="${twitterShareUrl}" target="_blank">
+                                    <button class="swal2-confirm swal2-styled" style="background-color: red;">Share</button>
+                                </a>`
+                        });
+                    }
+                })();
+            }
+
             const updatedPoints = response.data.updatedPoints;
-            document.getElementById('userPointsDiv').textContent = `Your Total Coins: ${updatedPoints}`;
-            document.getElementById('pointsDisplay').textContent = `Your Total Coins: ${updatedPoints}`; // Update the points display
+            document.getElementById('userPointsDiv').textContent = `Your Coins: ${updatedPoints}`;
+            document.getElementById('pointsDisplay').textContent = `Your Coins: ${updatedPoints}`; // Update the points display
             
             if (response.data.item_id == 2) {
-                const twitterShareUrl = `https://twitter.com/intent/tweet?text=I%20got%20my%20adventure%20ticket%20to%20EV3%20!%20%23EV3%20%23BLUECODE&url=https://boat.ev3nft.xyz/`;
+                const twitterShareUrl = `https://twitter.com/intent/tweet?text=Lo%20and%20behold%2C%20I%20have%20in%20my%20possession%20the%20coveted%20whitelist%20pass%20to%20the%20enchanted%20lands%20of%20EV3%21%20This%20magical%20pass%20is%20my%20key%20to%20unlocking%20a%20world%20filled%20with%20wonders%20and%20treasures%20untold.%20Will%20you%20join%20me%20on%20this%20grand%20adventure%3F%20%23EV3%20%23BLUECODE&url=https://boat.ev3nft.xyz/`;
                 winSound.play();
                 let swalConfig = {
                     ...defaultSwalConfig,
@@ -803,15 +894,15 @@ function purchaseItem(itemId) {
                     allowEscapeKey: false,
                     preConfirm: (walletAddress) => {
                         return axios.post('/wallet', { wallet_address: walletAddress })
-                            .then(response => {
-                                if (!response.data.success) {
-                                    throw new Error(response.data.message);
-                                }
-                                return response.data;
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(`Request failed: ${error}`);
-                            });
+                        .then(response => {
+                            if (!response.data.success) {
+                                throw new Error(response.data.message);
+                            }
+                            return response.data;
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(`Request failed: ${error}`);
+                        });
                     },
                 };
             
@@ -835,7 +926,6 @@ function purchaseItem(itemId) {
                 });
             }
         } else {
-            // Display the server's error message using Swal.fire
             Swal.fire({
                 ...defaultSwalConfig,
                 title: 'Error',
@@ -903,4 +993,17 @@ function showAllEntries(page) {
     });
 }
 
-
+function checkUserWinStatus(userId) {
+    return axios.get(`/checkWinStatus`, {
+        params: {
+            user_id: userId
+        }
+    })
+    .then(response => {
+        console.log("User win status response:", response.data);  // Logging the response
+        return response.data;
+    })
+    .catch(error => {
+        console.error("Error checking user win status:", error);
+    });
+}

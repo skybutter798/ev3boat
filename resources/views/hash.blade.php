@@ -69,7 +69,7 @@
     <div class="game-container">
         <div class="main-content">
             <div class="content-row">
-                <img src="/img/boat/Quest_casino_1.png?v2" alt="CHICKEN DINNER" class="clickable-object">
+                <img src="/img/boat/Quest_casino_1.png?v3" alt="CHICKEN DINNER" class="clickable-object">
                 <img src="/img/boat/Quest_boat_1.png?v3" alt="FKIN OLDMAN" class="oldman-object" id="bubble" onclick="bubbleClicked()">
                 <img src="/img/boat/Quest_sign_1.png?v6" id="shopButton" alt="NPCSHOP" class="shopButton">
                 <img src="/img/boat/Quest_shop_1.png?v8" id="showAllEntriesButton" alt="YOUR FATE" class="previous-hash-results">

@@ -34,16 +34,11 @@
         <h1>EV3 - Blue Code</h1>
         @if(Auth::check())
             <span style="color:white">Welcome, {{ Auth::user()->name }}</span>
-            
-            @if(Auth::check() && Auth::user()->share == 1)
-                <div id="remainingClicksDiv" style="color:white; margin-right: 10px;">
-                    You have 1 click left for today.
-                </div>
-            @else
+
                 <div id="remainingClicksDiv" style="color:white; margin-right: 10px;">
                     You have {{ $remainingClicks }} clicks left for today.
                 </div>
-            @endif
+
             
             <span id="userWalletAddress" style="display: none;">{{ Auth::user()->wallet_address }}</span>
             <form action="{{ route('logout') }}" method="POST">
@@ -61,13 +56,13 @@
             <button id="userRewardButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;" onclick="showRewardUsers()">Special Prize Hall</button>
             <button id="userListButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;" onclick="showClickedUsers()">Whitelist Hall</button>
             
-            @if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif
+            {{--@if(Auth::check() && $userCriteriaFulfilled)<button id="walletPopoutButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Cash Wallet</button>@endif--}}
             
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Whitelist available : {{ $whitelistCount }}</button>
             <button id="previousResultsButton" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">History</button>
             {{--<button onclick="tryHash()" style="background-color: #2778c4; color: white; border: solid; border-width: thin;">Try Hash</button>--}}
-            <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;" class="user-info" id="userGoldsDiv">Your Golds: {{ $userGolds }}</button>
             <button style="background-color: #2778c4; color: white; border: solid; border-width: thin;" class="user-info" id="userPointsDiv">Your Coins: {{ $userPoints }}</button>
+            <button style="background-color: #ffb034; color: white; border: solid; border-width: thin;" class="user-info" id="userGoldsDiv">Your Golds: {{ $userGolds }}</button>
         </div>
     </div>
     
@@ -79,6 +74,7 @@
                 <img src="/img/boat/Quest_sign_1.png?v6" id="shopButton" alt="NPCSHOP" class="shopButton">
                 <img src="/img/boat/Quest_shop_1.png?v8" id="showAllEntriesButton" alt="YOUR FATE" class="previous-hash-results">
                 <img src="/img/boat/Quest_info_stone.png?v1" id="stone" alt="MagciStone" class="stone">
+                <img src="/img/boat/Quest_code_1.png?v1" id="code" alt="code" class="code">
 
             </div>
         </div>

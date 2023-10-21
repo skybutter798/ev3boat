@@ -33,3 +33,4 @@ Route::get('/get-all-entries', [HashController::class, 'getAllEntries']);
 Route::post('/stone', [HashController::class, 'stone']);
 Route::post('/recordReward', [HashController::class, 'recordReward']);
 Route::get('/checkWinStatus', [HashController::class, 'checkWinStatus']);
+Route::post('/redeem-code', [HashController::class, 'redeem']);

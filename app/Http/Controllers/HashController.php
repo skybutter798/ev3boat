@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Abraham\TwitterOAuth\TwitterOAuth;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
+use App\Models\Code;
+
 
 
 class HashController extends Controller
@@ -300,7 +302,7 @@ class HashController extends Controller
     
         $randomNumber = rand(1, 10);
     
-        if ($randomNumber === 8) {
+        if ($randomNumber == 8) {
             $user->golds++;
             $user->save();
             Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' won a special reward! ' . $randomNumber . ' Balance: ' . $user->points . ' Golds: ' . $user->golds);
@@ -308,7 +310,8 @@ class HashController extends Controller
                 'status' => 'success',
                 'message' => 'Fortune smiles upon you! You have unearthed a golden treasure!',
                 'updatedPoints' => $user->points,
-                'updatedGolds' => $user->golds, // corrected property name
+                'updatedGolds' => $user->golds,
+                'LuckyNumber' => $randomNumber,
             ]);
         } else {
             Log::channel('number_click')->info('User ID: ' . $user->id . ' Name: ' . $user->name . ' did not win the special reward. ' . $randomNumber . ' Balance: ' . $user->points . ' Golds: ' . $user->golds);
@@ -316,7 +319,8 @@ class HashController extends Controller
                 'status' => 'success',
                 'message' => 'The gods of fortune were not in your favor. Better luck next time!',
                 'updatedPoints' => $user->points,
-                'updatedGolds' => $user->golds, // corrected property name
+                'updatedGolds' => $user->golds,
+                'NotLuckyNumber' => $randomNumber,
             ]);
         }
     }
@@ -363,5 +367,62 @@ class HashController extends Controller
             return response()->json(['success' => false, 'message' => 'Error checking win status: ' . $e->getMessage()], 500);
         }
     }
+    
+    public function redeem(Request $request)
+    {
+        $user = Auth::user();
+        $codeInput = $request->input('code');
+    
+        $code = Code::where('code', $codeInput)
+            ->where('status', true)
+            ->first();
+    
+        if (!$code) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid code']);
+        }
+    
+        // Check if the code has already been used by the user
+        $codeUsed = DB::table('code_user')
+            ->where('code_id', $code->id)
+            ->where('user_id', $user->id)
+            ->exists();
+    
+        if ($codeUsed) {
+            return response()->json(['status' => 'error', 'message' => 'You have already used this code']);
+        }
+    
+        // Update the user's data based on the code type
+        switch ($code->type) {
+            case 1:
+                $user->clicks += 2;
+                break;
+            case 2:
+                $user->points += 10;
+                break;
+            case 3:
+                $user->clicks += 5;
+                break;
+            default:
+                return response()->json(['status' => 'error', 'message' => 'Invalid code type']);
+        }
+        $user->save();
+    
+        // Record the use of the code by the user
+        DB::table('code_user')->insert([
+            'code_id' => $code->id,
+            'user_id' => $user->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Code redeemed successfully',
+            'updatedClicks' => $user->clicks,
+        ]);
+
+    }
+
+
 
 }

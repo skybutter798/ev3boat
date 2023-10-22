@@ -446,8 +446,8 @@ document.querySelector('.clickable-object').addEventListener('click', function()
             },
             html: `
                 <div class="game-buttons-container">
-                    ${[...Array(10).keys()].map(number => `<button id="btn${number}" class="game-button">${number}</button>`).join('')}
-                    ${['A', 'B', 'C', 'D', 'E', 'F'].map(letter => `<button id="btn${letter}" class="game-button">${letter}</button>`).join('')}
+                    ${[...Array(10).keys()].map(number => `<button id="btn${number}" class="game-button" data-value="${number}">${number}</button>`).join('')}
+                    ${['A', 'B', 'C', 'D', 'E', 'F'].map(letter => `<button id="btn${letter}" class="game-button" data-value="${letter}">${letter}</button>`).join('')}
                 </div>
                 <div class="user-entries">
                     <h3 style="color:white">Pending Entries</h3>
@@ -511,7 +511,7 @@ document.querySelector('.clickable-object').addEventListener('click', function()
                 
                 buttons.forEach(button => {
                     button.addEventListener('click', function() {
-                        handleGameButtonClick(this.innerText);
+                        handleGameButtonClick(this.getAttribute('data-value'));
                     });
                 });
 

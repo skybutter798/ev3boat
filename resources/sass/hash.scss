@@ -7,6 +7,7 @@
     /*background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);*/
     transition: all 0.3s;
     justify-content: flex-start !important;
+    user-select: none;
 }
 
 h1, h3 {
